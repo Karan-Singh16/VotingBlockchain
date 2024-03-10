@@ -1,0 +1,58 @@
+pragma solidity ^0.8.0;
+
+contract VotingSystem {
+    // Define a structure to represent a candidate
+    struct Candidate {
+        uint id;
+        string name;
+        uint voteCount;
+    }
+
+    // Store the list of candidates
+    Candidate[] public candidates;
+
+    // Keep track of the voters who have already voted
+    mapping(address => bool) public voters;
+
+    // Event to announce when a vote is cast
+    event VotedEvent(uint indexed candidateId);
+
+    // Constructor to initialize the list of candidates
+    constructor(string[] memory _candidateNames) {
+        for (uint i = 0; i < _candidateNames.length; i++) {
+            candidates.push(Candidate({
+                id: i + 1,
+                name: _candidateNames[i],
+                voteCount: 0
+            }));
+        }
+    }
+
+    // Function to cast a vote for a candidate
+    function vote(uint _candidateId) public {
+        // Ensure the voter hasn't already voted
+        require(!voters[msg.sender], "You have already voted.");
+
+        // Ensure the candidate ID is valid
+        require(_candidateId > 0 && _candidateId <= candidates.length, "Invalid candidate ID.");
+
+        // Record the voter's vote and update the candidate's vote count
+        voters[msg.sender] = true;
+        candidates[_candidateId - 1].voteCount++;
+
+        // Emit an event to indicate that a vote has been cast
+        emit VotedEvent(_candidateId);
+    }
+
+    // Function to retrieve the total number of candidates
+    function getCandidateCount() public view returns (uint) {
+        return candidates.length;
+    }
+
+    // Function to retrieve the details of a specific candidate
+    function getCandidate(uint _candidateId) public view returns (uint, string memory, uint) {
+        require(_candidateId > 0 && _candidateId <= candidates.length, "Invalid candidate ID.");
+        Candidate memory candidate = candidates[_candidateId - 1];
+        return (candidate.id, candidate.name, candidate.voteCount);
+    }
+}
